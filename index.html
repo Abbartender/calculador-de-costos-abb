@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Cocteles</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #1a0a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      padding: 24px 16px;
+      color: #f0e6ff;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      background: linear-gradient(90deg, #e040fb, #7c4dff, #00bcd4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #b39ddb;
+      margin-bottom: 28px;
+      font-size: 0.9rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+      backdrop-filter: blur(10px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .card-header h2 {
+      font-size: 1.1rem;
+      color: #ce93d8;
+      font-weight: 600;
+    }
+
+    .unit-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 6px 12px;
+    }
+
+    .unit-selector label {
+      font-size: 0.8rem;
+      color: #b39ddb;
+    }
+
+    .unit-selector select {
+      background: transparent;
+      border: none;
+      color: #e040fb;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      -webkit-appearance: none;
+      padding-right: 4px;
+    }
+
+    .unit-selector select option {
+      background: #1a0a2e;
+      color: #f0e6ff;
+    }
+
+    /* Nombre del coctel */
+    .coctel-name-row {
+      max-width: 900px;
+      margin: 0 auto 16px auto;
+    }
+
+    .coctel-name-row input {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid rgba(224,64,251,0.4);
+      background: rgba(0,0,0,0.3);
+      color: #f0e6ff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .coctel-name-row input::placeholder { color: #7e57c2; }
+    .coctel-name-row input:focus { border-color: #e040fb; }
+
+    /* Ingredientes */
+    #ingredientes-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .ingrediente-card {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(124,77,255,0.25);
+      border-radius: 14px;
+      padding: 16px 18px;
+      position: relative;
+      transition: border-color 0.2s;
+    }
+
+    .ingrediente-card:hover { border-color: rgba(224,64,251,0.4); }
+
+    .ingrediente-card .num-badge {
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      background: linear-gradient(90deg, #e040fb, #7c4dff);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+    }
+
+    .ingrediente-card .btn-remove {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: rgba(244,67,54,0.2);
+      border: 1px solid rgba(244,67,54,0.4);
+      color: #ef9a9a;
+      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .ingrediente-card .btn-remove:hover { background: rgba(244,67,54,0.4); }
+
+    .grid-fields {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr 1.5fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .grid-fields-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1.2fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .grid-fields, .grid-fields-2 { grid-template-columns: 1fr 1fr; }
+    }
+
+    .field { display: flex; flex-direction: column; gap: 4px; }
+
+    .field label {
+      font-size: 0.72rem;
+      color: #9575cd;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .field input, .field select {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      color: #f0e6ff;
+      font-size: 0.88rem;
+      padding: 8px 10px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      width: 100%;
+    }
+
+    .field input:focus {
+      border-color: #7c4dff;
+      background: rgba(124,77,255,0.1);
+    }
+
+    .field input::placeholder { color: #5c4a8a; }
+
+    .field input[readonly] {
+      background: rgba(224,64,251,0.08);
+      border-color: rgba(224,64,251,0.25);
+      color: #e040fb;
+      font-weight: 600;
+      cursor: default;
+    }
+
+    .costo-badge {
+      background: rgba(0,188,212,0.1);
+      border: 1px solid rgba(0,188,212,0.3);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #00bcd4;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Botón agregar */
+    .btn-agregar {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto 20px auto;
+      display: block;
+      padding: 14px;
+      background: linear-gradient(90deg, #7c4dff, #e040fb);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn-agregar:hover { opacity: 0.9; }
+    .btn-agregar:active { transform: scale(0.98); }
+
+    /* Resultado */
+    .resultado-card {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(0,188,212,0.3);
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .resultado-card h3 {
+      color: #b39ddb;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .resultado-total {
+      font-size: 2.8rem;
+      font-weight: 800;
+      color: #00bcd4;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .resultado-sub {
+      font-size: 0.8rem;
+      color: #7986cb;
+    }
+
+    .resultado-tabla {
+      margin-top: 20px;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .resultado-tabla th {
+      color: #9575cd;
+      text-align: left;
+      padding: 6px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .resultado-tabla td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      color: #e0d7f5;
+    }
+
+    .resultado-tabla tr:last-child td { border-bottom: none; }
+
+    .resultado-tabla .monto {
+      text-align: right;
+      font-weight: 700;
+      color: #00bcd4;
+    }
+
+    .btn-reset {
+      margin-top: 18px;
+      padding: 10px 28px;
+      background: transparent;
+      border: 1px solid rgba(244,67,54,0.5);
+      border-radius: 10px;
+      color: #ef9a9a;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-reset:hover { background: rgba(244,67,54,0.1); }
+
+    .empty-msg {
+      text-align: center;
+      color: #5c4a8a;
+      padding: 20px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🍹 Calculadora de Cocteles</h1>
+  <p class="subtitle">Calcula el costo exacto de cada preparación</p>
+
+  <!-- Nombre del coctel -->
+  <div class="coctel-name-row">
+    <input type="text" id="nombre-coctel" placeholder="Nombre del coctel (ej. Mojito Clásico)" />
+  </div>
+
+  <!-- Card principal -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Ingredientes de la receta</h2>
+      <div class="unit-selector">
+        <label>Unidad:</label>
+        <select id="unidad-global" onchange="cambiarUnidad()">
+          <option value="ml">ml (mililitros)</option>
+          <option value="oz">oz (onzas)</option>
+          <option value="g">g (gramos)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="ingredientes-list">
+      <div class="empty-msg">Agrega el primer ingrediente con el botón de abajo</div>
+    </div>
+  </div>
+
+  <button class="btn-agregar" onclick="agregarIngrediente()">+ Agregar Producto</button>
+
+  <!-- Resultado -->
+  <div class="resultado-card" id="resultado-card">
+    <h3>Costo Total del Coctel</h3>
+    <div class="resultado-total" id="resultado-total">$0</div>
+    <div class="resultado-sub">Pesos colombianos (COP)</div>
+    <table class="resultado-tabla" id="resultado-tabla" style="display:none">
+      <thead>
+        <tr>
+          <th>Ingrediente</th>
+          <th>Marca</th>
+          <th>Cantidad</th>
+          <th style="text-align:right">Costo</th>
+        </tr>
+      </thead>
+      <tbody id="resultado-body"></tbody>
+    </table>
+    <button class="btn-reset" onclick="resetTodo()">Limpiar todo</button>
+  </div>
+
+<script>
+  let ingredientes = [];
+  let contador = 0;
+  let unidad = 'ml';
+
+  const CONVERSIONES = { ml: 1, oz: 29.5735, g: 1 };
+
+  function cambiarUnidad() {
+    unidad = document.getElementById('unidad-global').value;
+    document.querySelectorAll('.label-unidad').forEach(el => el.textContent = unidad);
+    recalcularTodo();
+  }
+
+  function agregarIngrediente() {
+    const lista = document.getElementById('ingredientes-list');
+    const empty = lista.querySelector('.empty-msg');
+    if (empty) empty.remove();
+
+    contador++;
+    const id = contador;
+    ingredientes.push({ id });
+
+    const div = document.createElement('div');
+    div.className = 'ingrediente-card';
+    div.id = `ing-${id}`;
+    div.innerHTML = `
+      <span class="num-badge"># ${id}</span>
+      <button class="btn-remove" onclick="eliminarIngrediente(${id})" title="Eliminar">✕</button>
+
+      <div class="grid-fields" style="margin-top:12px">
+        <div class="field">
+          <label>Nombre del Producto</label>
+          <input type="text" id="nombre-${id}" placeholder="Ej. Ron blanco" oninput="recalcular(${id})" />
+        </div>
+        <div class="field">
+          <label>Marca</label>
+          <input type="text" id="marca-${id}" placeholder="Ej. Bacardí" oninput="recalcular(${id})" />
+        </div>
+        <div class="field">
+          <label>Presentación (ml)</label>
+          <input type="number" id="presentacion-${id}" placeholder="Ej. 750" min="0" oninput="recalcular(${id})" />
+        </div>
+      </div>
+
+      <div class="grid-fields-2">
+        <div class="field">
+          <label>Precio del Producto ($)</label>
+          <input type="number" id="precio-${id}" placeholder="Ej. 45000" min="0" oninput="recalcular(${id})" />
+        </div>
+        <div class="field">
+          <label>Valor por ml</label>
+          <input type="text" id="valor-ml-${id}" readonly placeholder="—" />
+        </div>
+        <div class="field">
+          <label>Cantidad en receta (<span class="label-unidad">${unidad}</span>)</label>
+          <input type="number" id="cantidad-${id}" placeholder="Ej. 60" min="0" oninput="recalcular(${id})" />
+        </div>
+        <div class="field">
+          <label>Costo en receta</label>
+          <div class="costo-badge" id="costo-${id}">$0</div>
+        </div>
+      </div>
+    `;
+
+    lista.appendChild(div);
+    recalcularTotal();
+  }
+
+  function eliminarIngrediente(id) {
+    document.getElementById(`ing-${id}`)?.remove();
+    ingredientes = ingredientes.filter(i => i.id !== id);
+
+    const lista = document.getElementById('ingredientes-list');
+    if (!lista.querySelector('.ingrediente-card')) {
+      lista.innerHTML = '<div class="empty-msg">Agrega el primer ingrediente con el botón de abajo</div>';
+    }
+    recalcularTotal();
+  }
+
+  function recalcular(id) {
+    const presentacion = parseFloat(document.getElementById(`presentacion-${id}`)?.value) || 0;
+    const precio = parseFloat(document.getElementById(`precio-${id}`)?.value) || 0;
+    const cantidad = parseFloat(document.getElementById(`cantidad-${id}`)?.value) || 0;
+
+    const factorAml = CONVERSIONES[unidad];
+    const cantidadMl = cantidad * factorAml;
+
+    let valorPorMl = 0;
+    let costoReceta = 0;
+
+    if (presentacion > 0 && precio > 0) {
+      valorPorMl = precio / presentacion;
+      costoReceta = valorPorMl * cantidadMl;
+    }
+
+    const vmEl = document.getElementById(`valor-ml-${id}`);
+    const costoEl = document.getElementById(`costo-${id}`);
+
+    if (vmEl) vmEl.value = valorPorMl > 0 ? `$${valorPorMl.toFixed(2)}/ml` : '';
+    if (costoEl) costoEl.textContent = `$${formatNum(costoReceta)}`;
+
+    const ing = ingredientes.find(i => i.id === id);
+    if (ing) {
+      ing.costoReceta = costoReceta;
+      ing.cantidadMl = cantidadMl;
+    }
+
+    recalcularTotal();
+  }
+
+  function recalcularTodo() {
+    ingredientes.forEach(i => recalcular(i.id));
+  }
+
+  function recalcularTotal() {
+    const total = ingredientes.reduce((sum, i) => sum + (i.costoReceta || 0), 0);
+    document.getElementById('resultado-total').textContent = `$${formatNum(total)}`;
+
+    const tbody = document.getElementById('resultado-body');
+    const tabla = document.getElementById('resultado-tabla');
+    tbody.innerHTML = '';
+
+    const activos = ingredientes.filter(i => i.costoReceta > 0);
+    if (activos.length > 0) {
+      tabla.style.display = 'table';
+      activos.forEach(i => {
+        const nombre = document.getElementById(`nombre-${i.id}`)?.value || `Ingrediente ${i.id}`;
+        const marca = document.getElementById(`marca-${i.id}`)?.value || '—';
+        const cantidad = document.getElementById(`cantidad-${i.id}`)?.value || '0';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${nombre}</td>
+          <td>${marca}</td>
+          <td>${cantidad} ${unidad}</td>
+          <td class="monto">$${formatNum(i.costoReceta)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } else {
+      tabla.style.display = 'none';
+    }
+  }
+
+  function resetTodo() {
+    if (!confirm('¿Limpiar todos los ingredientes?')) return;
+    ingredientes = [];
+    contador = 0;
+    const lista = document.getElementById('ingredientes-list');
+    lista.innerHTML = '<div class="empty-msg">Agrega el primer ingrediente con el botón de abajo</div>';
+    document.getElementById('nombre-coctel').value = '';
+    document.getElementById('resultado-total').textContent = '$0';
+    document.getElementById('resultado-tabla').style.display = 'none';
+    document.getElementById('resultado-body').innerHTML = '';
+  }
+
+  function formatNum(n) {
+    return n.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+</script>
+</body>
+</html>
